@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swift Route - Courier Logistics Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" role="complementary" aria-label="Sidebar navigation">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-truck-fast" aria-hidden="true"></i>
+                    <span>Swift Route</span>
+                </div>
+                <p class="tagline">Courier Logistics</p>
+            </div>
+            <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+                <a href="#" class="nav-item active" data-page="dashboard" role="menuitem" tabindex="0" aria-current="page">
+                    <i class="fas fa-chart-line" aria-hidden="true"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="customers" role="menuitem" tabindex="0">
+                    <i class="fas fa-users" aria-hidden="true"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="#" class="nav-item" data-page="packages" role="menuitem" tabindex="0">
+                    <i class="fas fa-box" aria-hidden="true"></i>
+                    <span>Packages</span>
+                </a>
+                <a href="#" class="nav-item" data-page="deliveries" role="menuitem" tabindex="0">
+                    <i class="fas fa-truck" aria-hidden="true"></i>
+                    <span>Deliveries</span>
+                </a>
+                <a href="#" class="nav-item" data-page="drivers" role="menuitem" tabindex="0">
+                    <i class="fas fa-id-card" aria-hidden="true"></i>
+                    <span>Drivers</span>
+                </a>
+                <a href="#" class="nav-item" data-page="payments" role="menuitem" tabindex="0">
+                    <i class="fas fa-credit-card" aria-hidden="true"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="#" class="nav-item" data-page="vehicles" role="menuitem" tabindex="0">
+                    <i class="fas fa-car" aria-hidden="true"></i>
+                    <span>Vehicles</span>
+                </a>
+                <a href="#" class="nav-item" data-page="routes" role="menuitem" tabindex="0">
+                    <i class="fas fa-route" aria-hidden="true"></i>
+                    <span>Routes</span>
+                </a>
+                <a href="#" class="nav-item" data-page="audit" role="menuitem" tabindex="0">
+                    <i class="fas fa-clipboard-list" aria-hidden="true"></i>
+                    <span>Audit Log</span>
+                </a>
+                <a href="#" class="nav-item" data-page="holidays" role="menuitem" tabindex="0">
+                    <i class="fas fa-calendar-day" aria-hidden="true"></i>
+                    <span>Holidays</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" aria-hidden="true">A</div>
+                    <div class="user-details">
+                        <span class="user-name">Abualgasim</span>
+                        <span class="user-role">Admin</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="main-content" role="main">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h1 id="pageTitle">Delivery Dashboard</h1>
+                    <p class="header-subtitle" id="pageSubtitle">Swift Route Courier Logistics & Package Delivery System</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn-search-icon" id="searchToggle" onclick="toggleSearch()" aria-label="Search packages" title="Search packages" style="display:none;">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                    </button>
+                    <div class="search-bar collapsible" id="packageSearch" style="display:none;">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                        <input type="text" id="packageSearchInput" placeholder="Search packages..." aria-label="Search packages" autocomplete="off">
+                        <button class="search-close" onclick="collapseSearch()" aria-label="Close search"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="date-display" aria-label="Current date">
+                        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                        <span id="currentDate"></span>
+                    </div>
+                    <button class="btn-refresh" onclick="refreshDashboard()" aria-label="Refresh data" title="Refresh (R)">
+                        <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                        Refresh
+                    </button>
+                </div>
+            </header>
+
+            <!-- Server offline banner -->
+            <div id="serverBanner" class="server-banner" style="display:none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span><strong>Server is offline.</strong> Open terminal and run: <code>cd backend && node server.js</code> then refresh this page.</span>
+                <button onclick="retryServer()" class="btn-retry">Retry</button>
+            </div>
+
+            <!-- Notification -->
+            <div id="notification" class="notification hidden" role="alert" aria-live="polite">
+                <i class="fas fa-check-circle" aria-hidden="true"></i>
+                <span id="notifText"></span>
+                <button onclick="hideNotification()" aria-label="Close notification"><i class="fas fa-times" aria-hidden="true"></i></button>
+            </div>
+
+            <!-- ===== DASHBOARD PAGE ===== -->
+            <div id="page-dashboard" class="page active">
+                <!-- KPI Cards -->
+                <section class="kpi-section" aria-label="Key Performance Indicators">
+                    <div class="kpi-card" tabindex="0" role="figure" aria-label="Total Deliveries">
+                        <div class="kpi-icon blue"><i class="fas fa-box" aria-hidden="true"></i></div>
+                        <div class="kpi-content">
+                            <h3>Total Deliveries</h3>
+                            <p class="kpi-value" id="totalDeliveries" aria-live="polite">0</p>
+                            <span class="kpi-change positive" id="totalDeliveriesChange"></span>
+                        </div>
+                    </div>
+                    <div class="kpi-card" tabindex="0" role="figure" aria-label="Completed Deliveries">
+                        <div class="kpi-icon green"><i class="fas fa-check-circle" aria-hidden="true"></i></div>
+                        <div class="kpi-content">
+                            <h3>Completed</h3>
+                            <p class="kpi-value" id="completedDeliveries" aria-live="polite">0</p>
+                            <span class="kpi-change positive" id="completionRate">0% completion rate</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card" tabindex="0" role="figure" aria-label="Pending Deliveries">
+                        <div class="kpi-icon orange"><i class="fas fa-clock" aria-hidden="true"></i></div>
+                        <div class="kpi-content">
+                            <h3>Pending</h3>
+                            <p class="kpi-value" id="pendingDeliveries" aria-live="polite">0</p>
+                            <span class="kpi-change negative" id="pendingRate">0% pending</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card" tabindex="0" role="figure" aria-label="Total Revenue">
+                        <div class="kpi-icon purple"><i class="fas fa-money-bill-wave" aria-hidden="true"></i></div>
+                        <div class="kpi-content">
+                            <h3>Total Revenue</h3>
+                            <p class="kpi-value" id="totalRevenue" aria-live="polite">0 RWF</p>
+                            <span class="kpi-change positive" id="totalRevenueChange">From payments</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card" tabindex="0" role="figure" aria-label="Average Delivery Time">
+                        <div class="kpi-icon red"><i class="fas fa-route" aria-hidden="true"></i></div>
+                        <div class="kpi-content">
+                            <h3>Avg Delivery Time</h3>
+                            <p class="kpi-value" id="avgDeliveryTime" aria-live="polite">0 days</p>
+                            <span class="kpi-change positive" id="avgTimeChange">Based on completed</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Package Search Results -->
+                <section id="searchResults" class="table-section" style="display:none;">
+                    <div class="table-card full">
+                        <div class="table-header">
+                            <h3><i class="fas fa-search"></i> <span id="searchResultsTitle">Search Results</span></h3>
+                            <button class="btn-secondary btn-sm" onclick="clearSearch()"><i class="fas fa-times"></i> Clear</button>
+                        </div>
+                        <div class="table-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Package Code</th>
+                                        <th>Sender</th>
+                                        <th>Receiver</th>
+                                        <th>Weight</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th>Driver</th>
+                                        <th>Vehicle</th>
+                                        <th>Route</th>
+                                        <th>Fee</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="searchResultsBody"></tbody>
+                            </table>
+                            <p class="empty-msg" id="searchResultsEmpty">No package found.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Row 1 -->
+                <section class="charts-row">
+                    <div class="chart-card large">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-chart-line"></i> Daily Delivery Trend</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="deliveryTrendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-chart-pie"></i> Payment Status</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="paymentStatusChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Row 2 -->
+                <section class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-user-tie"></i> Driver Performance</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="driverPerformanceChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-map-marked-alt"></i> Revenue by Route</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="revenueByRouteChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-car"></i> Vehicle Utilization</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="vehicleUtilChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tables Row -->
+                <section class="tables-row">
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3><i class="fas fa-list"></i> Recent Deliveries</h3>
+                        </div>
+                        <div class="table-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Package</th>
+                                        <th>Driver</th>
+                                        <th>Plate No</th>
+                                        <th>Route</th>
+                                        <th>Status</th>
+                                        <th>Fee (RWF)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentDeliveries"></tbody>
+                            </table>
+                            <p class="empty-msg" id="recentDeliveriesEmpty">No deliveries yet. Add packages and assign deliveries to get started.</p>
+                        </div>
+                    </div>
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3><i class="fas fa-star"></i> Top Drivers</h3>
+                        </div>
+                        <div class="table-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Driver</th>
+                                        <th>Deliveries</th>
+                                        <th>Success Rate</th>
+                                        <th>Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topDrivers"></tbody>
+                            </table>
+                            <p class="empty-msg" id="topDriversEmpty">No driver data yet.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ===== GENERIC TABLE PAGE (Customers, Drivers, Vehicles, etc.) ===== -->
+            <div id="page-table" class="page">
+                <section class="table-section">
+                    <div class="table-card full">
+                        <div class="table-header">
+                            <h3 id="tablePageTitle"><i class="fas fa-table"></i> Data Table</h3>
+                            <button class="btn-primary btn-sm" onclick="openAddModal()">
+                                <i class="fas fa-plus"></i> Add New
+                            </button>
+                        </div>
+                        <div class="table-body">
+                            <table>
+                                <thead id="dynamicTableHead"></thead>
+                                <tbody id="dynamicTableBody"></tbody>
+                            </table>
+                            <p class="empty-msg" id="dynamicTableEmpty">No records found. Click "Add New" to create one.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="footer-left">
+                    <span>Swift Route Courier Logistics &copy; 2026 | Student ID: 30686/2025 | UNILAK - Database Programming</span>
+                </div>
+                <div class="footer-right">
+                    <img class="owl-icon" src="owl_final_F0F2F5.png" alt="Owl Logo">
+                    <span class="owl-text"><span class="owl-copyright">&copy;</span> OWL 2026. WE CREATE</span>
+                </div>
+        </main>
+    </div>
+
+    <!-- ===== MODAL ===== -->
+    <div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Record</h3>
+                <button class="modal-close" onclick="closeModal()" aria-label="Close dialog (Escape)"><i class="fas fa-times" aria-hidden="true"></i></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic form content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()" type="button">Cancel</button>
+                <button class="btn-primary" id="btnSave" onclick="saveRecord()" type="button">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
